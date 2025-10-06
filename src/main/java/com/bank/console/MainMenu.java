@@ -1,6 +1,10 @@
 package com.bank.console;
 
-import java.util.Scanner;
+import java.util.InputMismatchException;
+
+
+import com.bank.project.App;
+
 
 public class MainMenu {
 	//reset color 
@@ -28,29 +32,32 @@ public class MainMenu {
     public static final String YELLOW_BRIGHT = "\033[0;93m";
     public static final String BLUE_BRIGHT = "\033[0;94m";
 
-	public static void show()
+	public static void show() throws InputMismatchException
 	{
-		Scanner din = new Scanner(System.in);
+		
 		try {
 			while(true)
 			{
 				System.out.println(CYAN+"***********Bank Management System***********"+RESET);
-				System.out.println(GREEN+"1. Admin Login"+RESET);
-			    System.out.println(YELLOW+"2. Manager Login"+RESET);
-			    System.out.println(BLUE_BRIGHT+"3. User Login"+RESET);
+				System.out.println(GREEN+"1. Admin portal"+RESET);
+			    System.out.println(YELLOW+"2. Manager portal"+RESET);
+			    System.out.println(BLUE_BRIGHT+"3. Customer portal"+RESET);
 			    System.out.println(RED_BRIGHT+"4. Exit"+RESET);
 			    System.out.print("Choose your role: "+RESET);
 			    
-			    int choice = din.nextInt();
+			    int choice = App.scanner.nextInt();
 			    switch (choice) {
 				case 1:
-					//admin login
+					// Admin login
+					Admin.AdminPortal();
 					break;
 				case 2:
 					//manager login
+					Manager.ManagerPortal();
 					break;
 				case 3:
 					//user login
+					User.UserPortal();
 					break;
 				case 4:
 					System.out.println("thank you for using our bank");
@@ -58,13 +65,18 @@ public class MainMenu {
 					break;
 				default:
 					System.out.println("Invalid choice , Try Again!!!");
+					show();
 					break;
 				}
 			}
 		} 
-		finally {
-			din.close();
+		catch(InputMismatchException e)
+		{
+			System.out.println("please a valid number to proceed...");
+			App.scanner.nextLine();
+			show();
 		}
+		
 	}
 
 }
