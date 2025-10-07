@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.InputMismatchException;
 import java.util.UUID;
 
 import com.bank.console.MainMenu;
@@ -296,7 +297,7 @@ public static void transfer() throws AccountNotFoundException, InvalidDepositAmo
 
 
 
-public static void logout()
+public static void logout() throws InputMismatchException, AccountNotFoundException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException
 {
 	System.out.println("Thanks for using our bank");
 	MainMenu.show();

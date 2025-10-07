@@ -6,11 +6,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import com.bank.dao.ConnectionProvider;
+import com.bank.exception.AccountNotFoundException;
+import com.bank.exception.DepositFailedException;
+import com.bank.exception.InsufficientBalanceException;
+import com.bank.exception.InvalidDepositAmountException;
+import com.bank.exception.InvalidWithdrawalAmountException;
+import com.bank.exception.WithdrawalFailedException;
+import com.bank.model.ManagerModel;
 import com.bank.project.App;
 
 public class Manager {
-	public static void ManagerPortal()
+	public static void ManagerPortal() throws AccountNotFoundException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException
 	{
 		
 		System.out.println("*************Manager portal*************");
@@ -53,30 +62,36 @@ public class Manager {
 
 	
 	public static void registerManager() {
-		String managerId = "MGR" + String.format("%04d", getManagerCount() + 1);
-		System.out.println("Generated Manager ID: " + managerId);
-		App.scanner.nextLine();
+	    String managerId = "MGR" + String.format("%04d", getManagerCount() + 1);
+	    System.out.println("Generated Manager ID: " + managerId);
+	    App.scanner.nextLine();
 
-	    System.out.println("Enter Name: ");
-	    String name = App.scanner.nextLine().trim();
-
-	    System.out.println("Enter Email: ");
-	    String email = App.scanner.nextLine().trim();
-
-	    System.out.println("Enter Password: ");
-	    String password = App.scanner.nextLine().trim();
-
-	    System.out.println("Enter Branch ID: ");
-	    String branchId = App.scanner.nextLine().trim();
+	    ManagerModel mg = new ManagerModel();
 
 	    try (Connection con = ConnectionProvider.getCon()) {
+	        mg.setManagerId(managerId);
+
+	        System.out.println("Enter Name: ");
+	        mg.setManagerName(App.scanner.nextLine());
+
+	        System.out.println("Enter Email: ");
+	        mg.setManagerEmail(App.scanner.nextLine());
+
+	        System.out.println("Enter Password: ");
+	        String plainPassword = App.scanner.nextLine();
+	        String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
+	        mg.setManagerPassword(hashedPassword);
+
+	        System.out.println("Enter Branch ID: ");
+	        mg.setBranchId(App.scanner.nextLine());
+
 	        String sql = "INSERT INTO manager (manager_id, manager_name, manager_email, manager_password, branch_id) VALUES (?, ?, ?, ?, ?)";
 	        PreparedStatement ps = con.prepareStatement(sql);
 	        ps.setString(1, managerId);
-	        ps.setString(2, name);
-	        ps.setString(3, email);
-	        ps.setString(4, password);
-	        ps.setString(5, branchId);
+	        ps.setString(2, mg.getManagerName());
+	        ps.setString(3, mg.getManagerEmail());
+	        ps.setString(4, mg.getManagerPassword());
+	        ps.setString(5, mg.getBranchId());
 
 	        int rows = ps.executeUpdate();
 	        if (rows > 0) {
@@ -92,9 +107,10 @@ public class Manager {
 	        }
 	    }
 	}
+
 	
-	public static void loginManager() {
-	    App.scanner.nextLine(); 
+	public static void loginManager() throws AccountNotFoundException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException {
+	    App.scanner.nextLine();
 
 	    System.out.println("Enter Manager ID: ");
 	    String managerId = App.scanner.nextLine().trim();
@@ -103,32 +119,36 @@ public class Manager {
 	    String email = App.scanner.nextLine().trim();
 
 	    System.out.println("Enter Password: ");
-	    String password = App.scanner.nextLine().trim();
+	    String inputPassword = App.scanner.nextLine().trim();
 
 	    try (Connection con = ConnectionProvider.getCon()) {
-	        String sql = "SELECT manager_name, status FROM manager WHERE manager_id = ? AND manager_email = ? AND manager_password = ?";
+	        String sql = "SELECT manager_name, manager_password, status FROM manager WHERE manager_id = ? AND manager_email = ?";
 	        PreparedStatement ps = con.prepareStatement(sql);
 	        ps.setString(1, managerId);
 	        ps.setString(2, email);
-	        ps.setString(3, password);
 
 	        ResultSet rs = ps.executeQuery();
 	        if (rs.next()) {
+	            String storedHash = rs.getString("manager_password");
 	            boolean isApproved = rs.getBoolean("status");
-	            if (isApproved) {
-	                System.out.println(" Login successful. Welcome, " + rs.getString("manager_name") + "!");
-	                ManagerView.managerMenu();
+
+	            if (BCrypt.checkpw(inputPassword, storedHash)) {
+	                if (isApproved) {
+	                    System.out.println("Login successful. Welcome, " + rs.getString("manager_name") + "!");
+	                    ManagerView.managerMenu();
+	                } else {
+	                    System.out.println("Your account is pending approval by the admin.");
+	                }
 	            } else {
-	                System.out.println(" Your account is pending approval by the admin. ");
+	                System.out.println("Invalid credentials. Please try again.");
 	            }
 	        } else {
-	            System.out.println(" Invalid credentials. Please try again. ");
+	            System.out.println("Invalid credentials. Please try again.");
 	        }
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    }
 	}
-
 
 
 

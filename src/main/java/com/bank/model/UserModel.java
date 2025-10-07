@@ -11,12 +11,9 @@ public class UserModel {
 	private String AccPassword;
 	private String AccountType;
 	private double Balance;
-	private double Amount;
+	//private double Amount;
 	private boolean status;
-	
-	private String userEmail = "vishal679205@gmail.com"; 
-	private String password = "pwll olnn wqmb umyo";
-	
+		
 	public String getAccountHolderNumber() {
 		return AccountHolderNumber;
 	}
@@ -65,30 +62,30 @@ public class UserModel {
 	public void setBalance(double balance) {
 		Balance = balance;
 	}
-	public double getAmount() {
-		return Amount;
-	}
-	public void setAmount(double amount) {
-		Amount = amount;
-	}
+//	public double getAmount() {
+//		return Amount;
+//	}
+//	public void setAmount(double amount) {
+//		Amount = amount;
+//	}
 	public boolean isStatus() {
 		return status;
 	}
 	public void setStatus(boolean status) {
 		this.status = status;
 	}
-	public String getUserEmail() {
-		return userEmail;
-	}
-	public void setUserEmail(String userEmail) {
-		this.userEmail = userEmail;
-	}
-	public String getPassword() {
-		return password;
-	}
-	public void setPassword(String password) {
-		this.password = password;
-	}
+//	public String getUserEmail() {
+//		return userEmail;
+//	}
+//	public void setUserEmail(String userEmail) {
+//		this.userEmail = userEmail;
+//	}
+//	public String getAppPassword() {
+//		return Apppassword;
+//	}
+//	public void setAppPassword(String password) {
+//		this.Apppassword = password;
+//	}
 	
 	
 	

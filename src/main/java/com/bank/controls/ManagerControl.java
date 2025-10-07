@@ -8,6 +8,12 @@ import java.sql.Statement;
 
 import com.bank.console.User;
 import com.bank.dao.ConnectionProvider;
+import com.bank.exception.AccountNotFoundException;
+import com.bank.exception.DepositFailedException;
+import com.bank.exception.InsufficientBalanceException;
+import com.bank.exception.InvalidDepositAmountException;
+import com.bank.exception.InvalidWithdrawalAmountException;
+import com.bank.exception.WithdrawalFailedException;
 import com.bank.model.UserModel;
 import com.bank.project.App;
 
@@ -41,7 +47,7 @@ public class ManagerControl {
 	    }
 	}
 	
-	public static void approveOrRejectCustomer() {
+	public static void approveOrRejectCustomer() throws AccountNotFoundException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException {
 	    System.out.println("Enter Customer Account ID to review: ");
 	    String accId = App.scanner.nextLine().trim();
 
@@ -71,6 +77,9 @@ public class ManagerControl {
 	        int rows = ps.executeUpdate();
 	        if (rows > 0) {
 	            System.out.println(" Customer account " + (newStatus ? "approved" : "rejected") + " successfully.");
+	            if(newStatus == true) {
+	            	UserEmailControl.SendUserDetails(accId);
+	            }
 	        } else {
 	            System.out.println(" Account not found or update failed.");
 	        }
@@ -188,7 +197,7 @@ public class ManagerControl {
 	    }
 
 	    try (Connection con = ConnectionProvider.getCon()) {
-	        String sql = "INSERT INTO customer (account_holder_number, branch_id, branch_name, account_holder_name, account_holder_email, acc_password, account_type, balance, amount, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	        String sql = "INSERT INTO customer (account_holder_number, branch_id, branch_name, account_holder_name, account_holder_email, acc_password, account_type, balance, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	        PreparedStatement ps = con.prepareStatement(sql);
 
 	        ps.setString(1, user.getAccountHolderNumber());
@@ -199,8 +208,7 @@ public class ManagerControl {
 	        ps.setString(6, user.getAccPassword());
 	        ps.setString(7, user.getAccountType());
 	        ps.setDouble(8, 0.0); // Initial balance
-	        ps.setDouble(9, 0.0); // Initial amount
-	        ps.setBoolean(10, true); //  Approved by manager
+	        ps.setBoolean(9, true); //  Approved by manager
 
 	        int i = ps.executeUpdate();
 	        if (i == 1) {

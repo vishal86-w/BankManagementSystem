@@ -4,13 +4,23 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.InputMismatchException;
 
+import org.mindrot.jbcrypt.BCrypt;
 
 import com.bank.dao.ConnectionProvider;
+import com.bank.exception.AccountNotFoundException;
+import com.bank.exception.DepositFailedException;
+import com.bank.exception.InsufficientBalanceException;
+import com.bank.exception.InvalidDepositAmountException;
+import com.bank.exception.InvalidWithdrawalAmountException;
+import com.bank.exception.WithdrawalFailedException;
+import com.bank.model.AdminModel;
 import com.bank.project.App;
 
 public class Admin {
-	 public static final String RESET = "\u001B[0m";
+		public static final String RESET = "\u001B[0m";
 
 	    public static final String BLACK = "\u001B[30m";
 	    public static final String RED = "\u001B[31m";
@@ -23,12 +33,13 @@ public class Admin {
 
 	    public static final String BOLD = "\033[1m";
 
-	public static void AdminPortal()
+	public static void AdminPortal() throws InputMismatchException, AccountNotFoundException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException
 	{
 		
 		System.out.println(BLUE+"*************Admin Login portal*************"+RESET);
 		System.out.println(GREEN+"1.Login"+RESET);
-		System.out.println(GREEN+"2.Return to menu"+RESET);
+		System.out.println(GREEN+"2.Register"+RESET);
+		System.out.println(GREEN+"3.Return to menu"+RESET);
 		System.out.println(GREEN+"Choose your option:"+RESET);
 		int choice = App.scanner.nextInt();
 		 App.scanner.nextLine();
@@ -38,7 +49,10 @@ public class Admin {
 			adminLogin();
 			break;
 		case 2:
-			MainMenu.show();
+			adminRegister();
+			break;
+		case 3:
+			MainMenu.show();;
 			break;
 		default:
 			System.out.println(RED+"Invalid Option,try again..."+RESET);
@@ -46,24 +60,30 @@ public class Admin {
 		}
 		
 	}
-	public static boolean verifyLogin(String inputUsername,String inputPassword)
+	public static boolean verifyLogin(String inputUsername,String inputPassword) throws AccountNotFoundException, InputMismatchException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException
 	{
+		  try (Connection con = ConnectionProvider.getCon()) {
+		    	String sql = "SELECT * FROM admin WHERE user_name = ?";
+		    	PreparedStatement ps = con.prepareStatement(sql);
+		    	ps.setString(1, inputUsername);
 
-		 try (Connection con = ConnectionProvider.getCon()) {
-	            String sql = "SELECT * FROM admin WHERE user_name = ? AND password = ?";
-	            PreparedStatement stmt = con.prepareStatement(sql);
-	            stmt.setString(1, inputUsername);
-	            stmt.setString(2, inputPassword);
+		    	ResultSet rs = ps.executeQuery();
 
-	            ResultSet rs = stmt.executeQuery();
-	            return rs.next(); 
+		    	if (rs.next()) {
+		    	    String storedHash = rs.getString("password");
+		    	    if (BCrypt.checkpw(inputPassword, storedHash)) {
+		    	    	System.out.println(YELLOW+"Login successful, welcome,"+RESET+GREEN+inputUsername+RESET);
+		    	      AdminView.adminMenu();
+		    	      return true;
+		    	    } 
+		    	} else {
+		    	    throw new AccountNotFoundException(RED + "Invalid account ID or password." + RESET);
+		    	}
 
-	        } catch (SQLException e) {
-	            e.printStackTrace();
-	            
-	        }
-		 
-		 return false;	
+		    } catch (SQLException e) {
+		        e.printStackTrace(); 
+		    }
+		  return false;
 	}
 	public static void adminLogin()
 	{
@@ -76,7 +96,7 @@ public class Admin {
 			
 			if(verifyLogin(inputUsername, inputPassword))
 			{
-				System.out.println(YELLOW+"Login successful, welcome,"+RESET+inputUsername);
+				
 				AdminView.adminMenu();
 				
 			}
@@ -92,6 +112,62 @@ public class Admin {
 		
 		
 	}
+	public static int count=0;
+	public static void getAdminCount()
+	{
+		try (Connection con = ConnectionProvider.getCon()){
+			String sql ="select count(*) from admin";
+			Statement smt = con.createStatement();
+			ResultSet rs=smt.executeQuery(sql);
+			if(rs.next())
+			{
+				String data = rs.getString(1);
+				count = Integer.parseInt(data);
+				
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	public static void adminRegister() {
+	    getAdminCount();
+	    String Admname = "adm00";
+	    String getcount = Integer.toString(count);
+	    String Accountadm = Admname + getcount;
+
+	    AdminModel ad = new AdminModel();
+
+	    try (Connection con = ConnectionProvider.getCon()) {
+	        ad.setAdmin_id(Accountadm);
+
+	        System.out.println(CYAN + "Enter your username" + RESET);
+	        ad.setUser_name(App.scanner.nextLine());
+
+	        System.out.println(CYAN + "Enter your password" + RESET);
+	        String plainPassword = App.scanner.nextLine();
+
+	        
+	        String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
+	        ad.setPassword(hashedPassword);
+
+	        String sql = "INSERT INTO admin(admin_id, user_name, password) VALUES (?, ?, ?)";
+	        PreparedStatement ps = con.prepareStatement(sql);
+
+	        ps.setString(1, ad.getAdmin_id());
+	        ps.setString(2, ad.getUser_name());
+	        ps.setString(3, ad.getPassword());
+
+	        int i = ps.executeUpdate();
+	        if (i == 1) {
+	            System.out.println(GREEN + "Registered Successfully" + RESET);
+	        } else {
+	            System.out.println(RED + "Registration failed, Invalid input" + RESET);
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
 	
 
 }

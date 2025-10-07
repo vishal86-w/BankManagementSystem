@@ -1,6 +1,12 @@
 package com.bank.console;
 
 import com.bank.controls.ManagerControl;
+import com.bank.exception.AccountNotFoundException;
+import com.bank.exception.DepositFailedException;
+import com.bank.exception.InsufficientBalanceException;
+import com.bank.exception.InvalidDepositAmountException;
+import com.bank.exception.InvalidWithdrawalAmountException;
+import com.bank.exception.WithdrawalFailedException;
 import com.bank.project.App;
 
 public class ManagerView {
@@ -13,9 +19,9 @@ public class ManagerView {
     public static final String RED = "\u001B[31m";
     public static final String BLUE = "\u001B[34m";
 
-    public static void managerMenu() {
+    public static void managerMenu() throws AccountNotFoundException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException {
         while (true) {
-            System.out.println(CYAN + "\n=====  Manager Portal =====" + RESET);
+            System.out.println(CYAN + "\n***********  Manager Portal ***********" + RESET);
             System.out.println(GREEN + "1. View All Customers" + RESET);
             System.out.println(GREEN + "2. Approve/Reject Customer Accounts" + RESET);
             System.out.println(GREEN + "3. View Transactions by Account" + RESET);

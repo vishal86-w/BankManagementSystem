@@ -2,7 +2,12 @@ package com.bank.console;
 
 import java.util.InputMismatchException;
 
-
+import com.bank.exception.AccountNotFoundException;
+import com.bank.exception.DepositFailedException;
+import com.bank.exception.InsufficientBalanceException;
+import com.bank.exception.InvalidDepositAmountException;
+import com.bank.exception.InvalidWithdrawalAmountException;
+import com.bank.exception.WithdrawalFailedException;
 import com.bank.project.App;
 
 
@@ -32,7 +37,7 @@ public class MainMenu {
     public static final String YELLOW_BRIGHT = "\033[0;93m";
     public static final String BLUE_BRIGHT = "\033[0;94m";
 
-	public static void show() throws InputMismatchException
+	public static void show() throws InputMismatchException, AccountNotFoundException, InvalidDepositAmountException, DepositFailedException, InvalidWithdrawalAmountException, InsufficientBalanceException, WithdrawalFailedException
 	{
 		
 		try {
@@ -43,7 +48,7 @@ public class MainMenu {
 			    System.out.println(YELLOW+"2. Manager portal"+RESET);
 			    System.out.println(BLUE_BRIGHT+"3. Customer portal"+RESET);
 			    System.out.println(RED_BRIGHT+"4. Exit"+RESET);
-			    System.out.print("Choose your role: "+RESET);
+			    System.out.print(YELLOW_BRIGHT+"Choose your role: "+RESET);
 			    
 			    int choice = App.scanner.nextInt();
 			    switch (choice) {
